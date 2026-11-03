@@ -14,6 +14,18 @@ app.get('/expenses', function getExpenses(req, res){
     res.json(expenses)
 })
 
+app.get('/expenses/:id', function OneExpense(req, res){
+    const readId = Number(req.params.id)
+    const getOneExpense = expenses.find((exp) => {
+        return exp.id === readId
+    })
+    if (!getOneExpense){
+        res.status(404).json({ message: "Expense not found"})
+        return
+    }
+    res.json(getOneExpense)
+})
+
 app.listen(3000, function onServerStart(){
     console.log("Server Started")
 })
