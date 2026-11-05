@@ -31,7 +31,10 @@ app.get('/expenses/:id', function OneExpense(req, res){
 
 app.post('/expenses', function makeExpense(req, res){
     console.log(req.body)
-    res.status(201).json(req.body)
+    const newId = expenses[expenses.length - 1].id + 1
+    const newItem = {id: newId, title: req.body["title"], category: req.body["category"], amount: req.body["amount"]}
+    expenses.push(newItem)
+    res.status(201).json(newItem)
 })
 
 app.listen(3000, function onServerStart(){
