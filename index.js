@@ -3,10 +3,7 @@ const express = require('express')
 const app = express()
 
 
-const expenses = [
-    {id: 1, title: "A lunch menu", category: "Food", amount: 12},
-    {id: 2, title: "A shopping list", category: "Fashion", amount: 50}
-]
+
 
 app.use(express.json())
 
@@ -47,12 +44,28 @@ app.get('/expenses/:id', async function OneExpense(req, res){
 
 })
 
-app.post('/expenses', function makeExpense(req, res){
-    console.log(req.body)
-    const newId = expenses[expenses.length - 1].id + 1
-    const newItem = {id: newId, title: req.body["title"], category: req.body["category"], amount: req.body["amount"]}
-    expenses.push(newItem)
-    res.status(201).json(newItem)
+app.post('/expenses', async function makeExpense(req, res){
+    try{
+        const titleData = req.body["title"];
+        const categoryData = req.body["category"] || "General";
+        const amountData = req.body["amount"];
+        if(typeof titleData !== "string" || titleData.trim() === ""){
+            res.status(400).json({ message: "Title required"})
+            return
+        }
+        if(typeof amountData !== "number" || amountData <= 0){
+            res.status(400).json({ message: "Amount is not a positive number"})
+            return
+        }
+        const result = await pool.query(
+            `INSERT INTO expenses (title, amount, category) VALUES ($1, $2, $3) RETURNING id, title, category, amount::float AS amount, to_char(expense_date, 'YYYY-MM-DD') AS expense_date`,
+            [titleData, amountData, categoryData]
+        )
+        res.status(201).json(result.rows[0])
+    } catch (error){
+        console.error(error)
+        res.status(500).json({ message: "Something went wrong"})
+    }
 })
 
 app.listen(3000, function onServerStart(){
