@@ -68,6 +68,28 @@ app.post('/expenses', async function makeExpense(req, res){
     }
 })
 
+app.delete('/expenses/:id', async function deleteExpense(req,res){
+    try{
+        const readId = Number(req.params.id);
+        if(!Number.isInteger(readId) || readId < 1){
+            res.status(400).json({message: "Invalid expense id"})
+            return
+        }
+        const result = await pool.query(
+            `DELETE FROM expenses WHERE id = $1 RETURNING id`,
+            [readId]
+        )
+        if(result.rows.length === 0){
+            res.status(404).json({message: "Expense not found"})
+            return
+        }
+        res.status(204).send()
+    } catch (error){
+        console.error(error)
+        res.status(500).json({message: "Something went wrong"})
+    }
+})
+
 app.listen(3000, function onServerStart(){
     console.log("Server Started")
 })
